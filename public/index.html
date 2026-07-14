@@ -236,7 +236,7 @@
                         <div id="previewContainer" style="display:none"><div class="preview-container"><img id="imagePreview" src="" alt="Preview"><button type="button" class="remove-img" onclick="removeImage()">&times;</button></div></div>
                     </div>
                 </div>
-                <div class="card"><div class="items-section"><h3><i data-lucide="boxes"></i> Artículos de la Orden</h3><div id="itemsList"></div><button type="button" class="btn-add-item" onclick="addItem()"><i data-lucide="plus"></i> Agregar artículo</button></div></div>
+                <div class="card"><div class="items-section"><h3><i data-lucide="boxes"></i> Artículos de la Orden</h3><div id="itemsList"></div><button type="button" class="btn-add-item" onclick="addItem()"><i data-lucide="plus"></i> Agregar artículo</button><p style="font-size:.8rem;color:rgba(255,255,255,.4);margin-top:.75rem;font-style:italic">Si no aparece en la lista, escribe OTRO y especifica en la descripción</p></div></div>
                 <button type="submit" class="btn-submit" id="btnSubmit"><i data-lucide="save"></i> Crear Orden</button>
                 </form>
         </div>
@@ -295,6 +295,7 @@
             <h3 style="font-size:1rem;margin:1rem 0 .5rem">Artículos</h3>
             <div id="editItemsList"></div>
             <button type="button" class="btn-add-item" onclick="addEditItem()" style="margin-bottom:1rem"><i data-lucide="plus"></i> Agregar artículo</button>
+            <p style="font-size:.8rem;color:rgba(255,255,255,.4);margin-top:-.5rem;margin-bottom:1rem;font-style:italic">Si no aparece en la lista, escribe OTRO y especifica en la descripción</p>
             <div class="modal-actions">
                 <button type="submit" class="btn-submit" id="btnEditSubmit" style="margin:0"><i data-lucide="save"></i> Guardar Cambios</button>
                 <button type="button" class="btn-cancel" onclick="closeEditModal()">Cancelar</button>
