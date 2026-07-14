@@ -15,8 +15,15 @@ const generateFolio = async () => {
   const prefix = `OE-${yy}${mm}${dd}`;
 
   const { data } = await supabase.from('ordenes').select('folio').like('folio', `${prefix}%`);
-  const next = (data ? data.length : 0) + 1;
-  return `${prefix}-${String(next).padStart(4, '0')}`;
+  let maxNum = 0;
+  if (data) {
+    data.forEach(o => {
+      const parts = o.folio.split('-');
+      const num = parseInt(parts[2], 10);
+      if (num > maxNum) maxNum = num;
+    });
+  }
+  return `${prefix}-${String(maxNum + 1).padStart(4, '0')}`;
 };
 
 router.get('/', requireAuth, async (req, res) => {
