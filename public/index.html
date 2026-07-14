@@ -116,8 +116,9 @@
         .compress-info{font-size:.75rem;color:rgba(255,255,255,.4);margin-top:.25rem}
         .auth-container{max-width:420px;margin:10vh auto}
         .auth-container .card{text-align:center}
-        .auth-container h1{font-size:1.5rem;margin-bottom:.5rem;display:flex;align-items:center;justify-content:center;gap:.75rem}
-        .auth-container h1 svg{width:28px;height:28px;color:var(--pico-primary)}
+        .auth-container h1{font-size:1.5rem;margin-bottom:.5rem;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.25rem}
+        .auth-container h1 img{height:60px;object-fit:contain;border-radius:.5rem}
+        .auth-container h1 small{font-size:.8rem;font-weight:400;color:rgba(255,255,255,.45)}
         .auth-container p{color:rgba(255,255,255,.5);font-size:.9rem;margin-bottom:1.5rem}
         .auth-tabs{display:flex;gap:0;margin-bottom:1.5rem;border-radius:.5rem;overflow:hidden;border:1px solid rgba(255,255,255,.1)}
         .auth-tab{flex:1;padding:.6rem;background:transparent;color:rgba(255,255,255,.5);border:none;cursor:pointer;font-weight:500;transition:all .15s}
@@ -194,7 +195,10 @@
 
     <div id="appView" style="display:none">
         <div class="header">
-            <h1><img src="/MAFER.png" style="height:40px;object-fit:contain;border-radius:.3rem"> Órdenes de Envío <small style="font-size:.65rem;font-weight:400;color:rgba(255,255,255,.45);display:block;margin-top:.15rem">De refacciones, artículos usados</small></h1>
+            <div style="display:flex;align-items:center;gap:.75rem">
+                <img src="/MAFER.png" style="height:45px;object-fit:contain;border-radius:.3rem">
+                <h1>Órdenes de Envío <small style="font-size:.65rem;font-weight:400;color:rgba(255,255,255,.45);display:block;margin-top:.15rem">De refacciones, artículos usados</small></h1>
+            </div>
             <div class="header-right">
                 <div class="tabs">
                     <button class="tab-btn active" onclick="showTab('nueva')" id="tabBtnNueva"><i data-lucide="plus-circle"></i> Nueva</button>
