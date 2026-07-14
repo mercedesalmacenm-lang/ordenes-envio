@@ -75,7 +75,7 @@ router.post('/', requireAuth, upload.single('imagen'), validateOrder, async (req
       articulos: articulos || '[]',
       fecha: fecha || new Date().toISOString().slice(0, 10),
       estado: estado || 'Pendiente',
-      creado_por: req.session.user.email,
+      creado_por: req.session.user.username,
       creado_por_id: req.session.user.id
     };
 

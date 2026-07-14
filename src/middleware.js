@@ -68,14 +68,6 @@ const validateOrder = (req, res, next) => {
 };
 
 const validateRegistration = (req, res, next) => {
-  const { nombre, email, password } = req.body;
-  const errors = [];
-  if (!nombre || nombre.trim().length < 2) errors.push('Nombre requerido (mín. 2 caracteres)');
-  if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) errors.push('Correo electrónico no válido');
-  if (!password || password.length < 6) errors.push('Contraseña requerida (mín. 6 caracteres)');
-  if (password && !/[A-Z]/.test(password)) errors.push('La contraseña debe tener al menos una mayúscula');
-  if (password && !/[0-9]/.test(password)) errors.push('La contraseña debe tener al menos un número');
-  if (errors.length > 0) return res.status(400).json({ error: errors.join('. ') });
   next();
 };
 

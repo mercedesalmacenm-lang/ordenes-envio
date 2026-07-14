@@ -162,7 +162,7 @@
             </div>
             <div id="loginForm" class="auth-form">
                 <form onsubmit="doLogin(event)">
-                    <div class="form-group"><label>Correo electrónico</label><input type="email" id="loginEmail" required placeholder="tu@empresa.com"></div>
+                    <div class="form-group"><label>Usuario</label><input type="text" id="loginEmail" required placeholder="Tu usuario"></div>
                     <div class="form-group"><label>Contraseña</label><input type="password" id="loginPass" required placeholder="Tu contraseña"></div>
                     <button type="submit" class="btn-submit" id="btnLogin"><i data-lucide="log-in"></i> Entrar</button>
                 </form>
@@ -171,7 +171,7 @@
             <div id="registroForm" class="auth-form" style="display:none">
                 <form onsubmit="doRegister(event)">
                     <div class="form-group"><label>Nombre completo</label><input type="text" id="regNombre" required placeholder="Juan Pérez" maxlength="100"></div>
-                    <div class="form-group"><label>Correo electrónico</label><input type="email" id="regEmail" required placeholder="tu@empresa.com"></div>
+                    <div class="form-group"><label>Nombre de usuario</label><input type="text" id="regEmail" required placeholder="Tu usuario" minlength="3"></div>
                     <div class="form-group"><label>Contraseña</label><input type="password" id="regPass" required minlength="6" placeholder="Tu contraseña"><small style="color:rgba(255,255,255,.4);font-size:.75rem;display:block;margin-top:.25rem">Mín. 6 caracteres, 1 mayúscula, 1 número</small></div>
                     <button type="submit" class="btn-submit" id="btnRegister"><i data-lucide="user-plus"></i> Crear Cuenta</button>
                 </form>
@@ -253,7 +253,7 @@
         <div id="tabUsuarios" class="tab-content">
             <div class="card">
                 <h2><i data-lucide="users"></i> Gestión de Usuarios</h2>
-                <div class="table-container"><table><thead><tr><th>Nombre</th><th>Correo</th><th>Rol</th><th>Estado</th><th>Registro</th><th>Acciones</th></tr></thead><tbody id="usersTable"><tr><td colspan="6"><div class="loading-spinner">Cargando usuarios...</div></td></tr></tbody></table></div>
+                <div class="table-container"><table><thead><tr><th>Nombre</th><th>Usuario</th><th>Rol</th><th>Estado</th><th>Registro</th><th>Acciones</th></tr></thead><tbody id="usersTable"><tr><td colspan="6"><div class="loading-spinner">Cargando usuarios...</div></td></tr></tbody></table></div>
             </div>
         </div>
     </div>
@@ -373,7 +373,7 @@
         async function doLogin(e) {
             e.preventDefault();
             try {
-                const data = await api('POST','/api/auth/login',{email:document.getElementById('loginEmail').value,password:document.getElementById('loginPass').value});
+                const data = await api('POST','/api/auth/login',{username:document.getElementById('loginEmail').value,password:document.getElementById('loginPass').value});
                 currentUser = data.user;
                 showApp();
             } catch(err) { showToast(err.message,'error'); }
@@ -382,7 +382,7 @@
         async function doRegister(e) {
             e.preventDefault();
             try {
-                const data = await api('POST','/api/auth/registro',{nombre:document.getElementById('regNombre').value,email:document.getElementById('regEmail').value,password:document.getElementById('regPass').value});
+                const data = await api('POST','/api/auth/registro',{nombre:document.getElementById('regNombre').value,username:document.getElementById('regEmail').value,password:document.getElementById('regPass').value});
                 if (data.user) { currentUser = data.user; showApp(); }
                 else { showToast(data.message,'success'); showAuthTab('login'); }
             } catch(err) { showToast(err.message,'error'); }
@@ -892,7 +892,7 @@
             const tbody = document.getElementById('usersTable');
             tbody.innerHTML = users.map(u => {
                 const sc = 'status-'+u.estado; const isMe = u.id===currentUser.id;
-                return `<tr><td>${esc(u.nombre)}${isMe?' <small style="color:var(--pico-primary)">(tú)</small>':''}</td><td>${esc(u.email)}</td><td>${u.rol==='admin'?'<strong style="color:var(--pico-primary)">Admin</strong>':'Usuario'}</td><td><span class="status-badge ${sc}">${esc(u.estado)}</span></td><td>${formatDate(u.fecha_registro)}</td><td class="actions-cell">${u.estado==='pendiente'?`<button class="btn-icon btn-approve" onclick="approveUser(${u.id})" title="Aprobar"></button><button class="btn-icon btn-reject" onclick="rejectUser(${u.id})" title="Rechazar"></button>`:''}${!isMe?`<button class="btn-icon btn-key" onclick="resetPassword(${u.id},'${esc(u.nombre)}')" title="Cambiar contraseña"></button><button class="btn-icon btn-delete" onclick="deleteUser(${u.id})" title="Eliminar"></button>`:''}</td></tr>`;
+                return `<tr><td>${esc(u.nombre)}${isMe?' <small style="color:var(--pico-primary)">(tú)</small>':''}</td><td>${esc(u.username)}</td><td>${u.rol==='admin'?'<strong style="color:var(--pico-primary)">Admin</strong>':'Usuario'}</td><td><span class="status-badge ${sc}">${esc(u.estado)}</span></td><td>${formatDate(u.fecha_registro)}</td><td class="actions-cell">${u.estado==='pendiente'?`<button class="btn-icon btn-approve" onclick="approveUser(${u.id})" title="Aprobar"></button><button class="btn-icon btn-reject" onclick="rejectUser(${u.id})" title="Rechazar"></button>`:''}${!isMe?`<button class="btn-icon btn-key" onclick="resetPassword(${u.id},'${esc(u.nombre)}')" title="Cambiar contraseña"></button><button class="btn-icon btn-delete" onclick="deleteUser(${u.id})" title="Eliminar"></button>`:''}</td></tr>`;
             }).join('');
             tbody.querySelectorAll('.btn-approve').forEach(b=>b.innerHTML=ICON_CHECK);
             tbody.querySelectorAll('.btn-reject').forEach(b=>b.innerHTML=ICON_X);

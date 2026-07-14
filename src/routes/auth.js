@@ -1,17 +1,23 @@
 const express = require('express');
 const bcrypt = require('bcryptjs');
-const crypto = require('crypto');
 const { queryOne, insert, update, count } = require('../db');
 const { loginLimiter, registerLimiter, validateRegistration } = require('../middleware');
 
 const router = express.Router();
 
-router.post('/registro', registerLimiter, validateRegistration, async (req, res) => {
+router.post('/registro', registerLimiter, async (req, res) => {
   try {
-    const { nombre, email, password } = req.body;
+    const { nombre, username, password } = req.body;
+    const errors = [];
+    if (!nombre || nombre.trim().length < 2) errors.push('Nombre requerido (mín. 2 caracteres)');
+    if (!username || username.trim().length < 3) errors.push('Usuario requerido (mín. 3 caracteres)');
+    if (!password || password.length < 6) errors.push('Contraseña requerida (mín. 6 caracteres)');
+    if (password && !/[A-Z]/.test(password)) errors.push('La contraseña debe tener al menos una mayúscula');
+    if (password && !/[0-9]/.test(password)) errors.push('La contraseña debe tener al menos un número');
+    if (errors.length > 0) return res.status(400).json({ error: errors.join('. ') });
 
-    const exists = await queryOne('usuarios', { email: email.trim().toLowerCase() });
-    if (exists) return res.status(409).json({ error: 'Este correo ya está registrado' });
+    const exists = await queryOne('usuarios', { username: username.trim().toLowerCase() });
+    if (exists) return res.status(409).json({ error: 'Este nombre de usuario ya está registrado' });
 
     const hash = bcrypt.hashSync(password, 10);
     const totalUsers = await count('usuarios');
@@ -19,7 +25,7 @@ router.post('/registro', registerLimiter, validateRegistration, async (req, res)
 
     const newUser = await insert('usuarios', {
       nombre: nombre.trim(),
-      email: email.trim().toLowerCase(),
+      username: username.trim().toLowerCase(),
       password: hash,
       rol: isFirst ? 'admin' : 'usuario',
       estado: isFirst ? 'aprobado' : 'pendiente'
@@ -38,10 +44,10 @@ router.post('/registro', registerLimiter, validateRegistration, async (req, res)
 
 router.post('/login', loginLimiter, async (req, res) => {
   try {
-    const { email, password } = req.body;
-    if (!email || !password) return res.status(400).json({ error: 'Correo y contraseña son requeridos' });
+    const { username, password } = req.body;
+    if (!username || !password) return res.status(400).json({ error: 'Usuario y contraseña son requeridos' });
 
-    const user = await queryOne('usuarios', { email: email.trim().toLowerCase() });
+    const user = await queryOne('usuarios', { username: username.trim().toLowerCase() });
     if (!user || !bcrypt.compareSync(password, user.password)) return res.status(401).json({ error: 'Credenciales incorrectas' });
     if (user.estado === 'rechazado') return res.status(403).json({ error: 'Tu cuenta fue rechazada' });
     if (user.estado === 'pendiente') return res.status(403).json({ error: 'Tu cuenta está pendiente de aprobación' });
@@ -67,41 +73,6 @@ router.get('/me', async (req, res) => {
     const { password: _, ...safeUser } = fresh;
     req.session.user = safeUser;
     res.json({ user: safeUser });
-  } catch (err) {
-    res.status(500).json({ error: 'Error del servidor' });
-  }
-});
-
-router.post('/forgot-password', async (req, res) => {
-  try {
-    const { email } = req.body;
-    if (!email) return res.status(400).json({ error: 'Correo requerido' });
-
-    const token = crypto.randomBytes(32).toString('hex');
-    const expires = Date.now() + 60 * 60 * 1000;
-
-    await update('usuarios', { reset_token: token, reset_expires: expires }, { email: email.trim().toLowerCase() });
-
-    res.json({ message: 'Si el correo existe, recibirás instrucciones para restablecer tu contraseña.', token });
-  } catch (err) {
-    res.status(500).json({ error: 'Error del servidor' });
-  }
-});
-
-router.post('/reset-password', async (req, res) => {
-  try {
-    const { token, password } = req.body;
-    if (!token || !password) return res.status(400).json({ error: 'Token y contraseña son requeridos' });
-    if (password.length < 6) return res.status(400).json({ error: 'La contraseña debe tener al menos 6 caracteres' });
-
-    const user = await queryOne('usuarios', { reset_token: token });
-    if (!user || (user.reset_expires && user.reset_expires < Date.now())) {
-      return res.status(400).json({ error: 'Token inválido o expirado' });
-    }
-
-    const hash = bcrypt.hashSync(password, 10);
-    await update('usuarios', { password: hash, reset_token: null, reset_expires: null }, { id: user.id });
-    res.json({ message: 'Contraseña actualizada. Ahora puedes iniciar sesión.' });
   } catch (err) {
     res.status(500).json({ error: 'Error del servidor' });
   }

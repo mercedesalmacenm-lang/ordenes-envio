@@ -1,6 +1,6 @@
 const express = require('express');
 const bcrypt = require('bcryptjs');
-const { queryAll, update, remove } = require('../db');
+const { queryAll, queryOne, update, remove } = require('../db');
 const { requireAdmin } = require('../middleware');
 
 const router = express.Router();
