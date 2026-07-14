@@ -416,7 +416,7 @@
             document.getElementById('userName').textContent=currentUser.nombre;
             if (currentUser.rol==='admin') { document.getElementById('tabBtnUsuarios').style.display=''; loadUsers(); }
             lucide.createIcons();
-            addItem(); generateFolio(); loadAllOrders();
+            document.getElementById('itemsList').innerHTML=''; itemCounter=0; addItem(); generateFolio(); loadAllOrders();
             document.getElementById('fecha').value = new Date().toISOString().slice(0,10);
         }
 
