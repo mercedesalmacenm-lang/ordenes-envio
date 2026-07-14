@@ -404,6 +404,7 @@
         async function doLogout() {
             try { await api('POST','/api/auth/logout'); } catch(e){}
             currentUser = null; orders = []; users = [];
+            document.getElementById('tabBtnUsuarios').style.display='none';
             document.getElementById('appView').style.display='none';
             document.getElementById('pendingView').style.display='none';
             document.getElementById('authView').style.display='block';
@@ -427,6 +428,7 @@
             document.getElementById('pendingView').style.display='none';
             document.getElementById('appView').style.display='block';
             document.getElementById('userName').textContent=currentUser.nombre;
+            document.getElementById('tabBtnUsuarios').style.display='none';
             if (currentUser.rol==='admin') { document.getElementById('tabBtnUsuarios').style.display=''; loadUsers(); }
             lucide.createIcons();
             if (currentUser.must_change_password) { showChangePasswordModal(); return; }
