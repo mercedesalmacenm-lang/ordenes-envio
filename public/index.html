@@ -314,6 +314,14 @@
         <div class="modal-actions"><button class="btn-cancel" onclick="closeDeleteModal()">Cancelar</button><button class="btn-danger" onclick="confirmDelete()">Eliminar</button></div>
     </div></div>
 
+    <div class="modal-overlay" id="changePasswordModal"><div class="modal" style="max-width:450px">
+        <h2><i data-lucide="key" style="color:#f59e0b"></i> Cambia tu contraseña</h2>
+        <p style="color:rgba(255,255,255,.5);font-size:.9rem;margin-bottom:1.5rem">Tu contraseña actual es temporal. Crea una nueva para continuar.</p>
+        <div class="form-group"><label>Nueva contraseña</label><input type="password" id="newPasswordInput" required placeholder="Mín. 6 caracteres" minlength="6"><small style="color:rgba(255,255,255,.4);font-size:.75rem;display:block;margin-top:.25rem">Mín. 6 caracteres, 1 mayúscula, 1 número</small></div>
+        <div class="form-group"><label>Confirmar contraseña</label><input type="password" id="confirmPasswordInput" required placeholder="Repite tu contraseña"></div>
+        <button type="button" class="btn-submit" onclick="submitChangePassword()" style="margin-top:.5rem"><i data-lucide="save"></i> Guardar Contraseña</button>
+    </div></div>
+
     <div class="spinner-overlay" id="globalSpinner" style="display:none"><div class="spinner-box"><span style="color:rgba(255,255,255,.7);font-size:.9rem">Procesando...</span></div></div>
     <div class="toast" id="toast"><span id="toastIcon"></span><span id="toastMessage"></span></div>
 
@@ -421,6 +429,7 @@
             document.getElementById('userName').textContent=currentUser.nombre;
             if (currentUser.rol==='admin') { document.getElementById('tabBtnUsuarios').style.display=''; loadUsers(); }
             lucide.createIcons();
+            if (currentUser.must_change_password) { showChangePasswordModal(); return; }
             document.getElementById('itemsList').innerHTML=''; itemCounter=0; addItem(); generateFolio(); loadAllOrders();
             document.getElementById('fecha').value = new Date().toISOString().slice(0,10);
         }
@@ -910,15 +919,10 @@
         async function deleteUser(id) { if(!confirm('¿Eliminar este usuario?'))return; try { await api('DELETE',`/api/usuarios/${id}`); showToast('Usuario eliminado','success'); loadUsers(); } catch(err) { showToast(err.message,'error'); } }
 
         async function resetPassword(id, nombre) {
-            const pass = prompt(`Nueva contraseña para "${nombre}":\n(Mín. 6 caracteres, 1 mayúscula, 1 número)`);
-            if (!pass) return;
-            if (pass.length < 6 || !/[A-Z]/.test(pass) || !/[0-9]/.test(pass)) {
-                showToast('La contraseña debe tener min. 6 caracteres, 1 mayúscula y 1 número','error');
-                return;
-            }
+            if(!confirm(`¿Restablecer contraseña de "${nombre}"?\n\nSe establecerá la contraseña temporal: Cambio123\nEl usuario deberá cambiarla al iniciar sesión.`)) return;
             try {
-                await api('POST',`/api/usuarios/${id}/reset-password`,{password:pass});
-                showToast('Contraseña actualizada','success');
+                const data = await api('POST',`/api/usuarios/${id}/reset-password`);
+                showToast(data.message,'success');
             } catch(err) { showToast(err.message,'error'); }
         }
 
@@ -1017,6 +1021,31 @@ ${o.imagen?`<div class="section"><div class="section-title">Imagen Adjunta</div>
         function esc(t) { const d=document.createElement('div'); d.textContent=t||''; return d.innerHTML; }
         function formatDate(s) { if(!s) return'-'; const p=s.split('-'); if(p.length===3) return`${p[2]}/${p[1]}/${p[0]}`; return s; }
         function showToast(msg,type='success') { const t=document.getElementById('toast'); const icon=type==='success'?'<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>':'<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>'; document.getElementById('toastIcon').innerHTML=icon; document.getElementById('toastMessage').textContent=msg; t.className=`toast ${type} visible`; setTimeout(()=>t.classList.remove('visible'),3500); }
+
+        function showChangePasswordModal() {
+            document.getElementById('changePasswordModal').classList.add('active');
+            document.getElementById('newPasswordInput').value = '';
+            document.getElementById('confirmPasswordInput').value = '';
+            lucide.createIcons();
+        }
+
+        async function submitChangePassword() {
+            const pass = document.getElementById('newPasswordInput').value;
+            const confirm = document.getElementById('confirmPasswordInput').value;
+            if (!pass || pass.length < 6) { showToast('La contraseña debe tener al menos 6 caracteres','error'); return; }
+            if (!/[A-Z]/.test(pass)) { showToast('Debe tener al menos una mayúscula','error'); return; }
+            if (!/[0-9]/.test(pass)) { showToast('Debe tener al menos un número','error'); return; }
+            if (pass !== confirm) { showToast('Las contraseñas no coinciden','error'); return; }
+
+            try {
+                await api('POST', '/api/auth/change-password', { password: pass });
+                currentUser.must_change_password = false;
+                document.getElementById('changePasswordModal').classList.remove('active');
+                showToast('Contraseña actualizada','success');
+                document.getElementById('itemsList').innerHTML=''; itemCounter=0; addItem(); generateFolio(); loadAllOrders();
+                document.getElementById('fecha').value = new Date().toISOString().slice(0,10);
+            } catch(err) { showToast(err.message,'error'); }
+        }
 
         checkSession();
     </script>

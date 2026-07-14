@@ -78,4 +78,21 @@ router.get('/me', async (req, res) => {
   }
 });
 
+router.post('/change-password', async (req, res) => {
+  try {
+    if (!req.session.user) return res.status(401).json({ error: 'No autenticado' });
+    const { password } = req.body;
+    if (!password || password.length < 6) return res.status(400).json({ error: 'La contraseña debe tener al menos 6 caracteres' });
+    if (!/[A-Z]/.test(password)) return res.status(400).json({ error: 'La contraseña debe tener al menos una mayúscula' });
+    if (!/[0-9]/.test(password)) return res.status(400).json({ error: 'La contraseña debe tener al menos un número' });
+
+    const hash = bcrypt.hashSync(password, 10);
+    await update('usuarios', { password: hash, must_change_password: false }, { id: req.session.user.id });
+    req.session.user.must_change_password = false;
+    res.json({ ok: true, message: 'Contraseña actualizada' });
+  } catch (err) {
+    res.status(500).json({ error: 'Error del servidor' });
+  }
+});
+
 module.exports = router;

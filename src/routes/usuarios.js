@@ -47,11 +47,9 @@ router.delete('/:id', requireAdmin, async (req, res) => {
 
 router.post('/:id/reset-password', requireAdmin, async (req, res) => {
   try {
-    const { password } = req.body;
-    if (!password || password.length < 6) return res.status(400).json({ error: 'La contraseña debe tener al menos 6 caracteres' });
-    const hash = bcrypt.hashSync(password, 10);
-    await update('usuarios', { password: hash }, { id: Number(req.params.id) });
-    res.json({ ok: true, message: 'Contraseña actualizada' });
+    const hash = bcrypt.hashSync('Cambio123', 10);
+    await update('usuarios', { password: hash, must_change_password: true }, { id: Number(req.params.id) });
+    res.json({ ok: true, message: 'Contraseña temporal: Cambio123. El usuario deberá cambiarla al iniciar sesión.' });
   } catch (err) {
     res.status(500).json({ error: 'Error del servidor' });
   }
