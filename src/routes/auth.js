@@ -38,6 +38,7 @@ router.post('/registro', registerLimiter, async (req, res) => {
     }
     res.json({ message: 'Registro exitoso. Tu cuenta está pendiente de aprobación.' });
   } catch (err) {
+    console.error('[Registro error]', err.message);
     res.status(500).json({ error: 'Error del servidor' });
   }
 });
