@@ -9,6 +9,7 @@ const usuariosRoutes = require('./src/routes/usuarios');
 const mfuRoutes = require('./src/routes/mfu');
 
 const app = express();
+app.set('trust proxy', 1);
 const PORT = process.env.PORT || 3000;
 
 app.use(express.json({ limit: '10mb' }));

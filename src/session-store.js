@@ -33,6 +33,10 @@ class SupabaseSessionStore extends EventEmitter {
       .catch(() => callback(null));
   }
 
+  createSession(sid, sess) {
+    return { sid, sess };
+  }
+
   touch(sid, session, callback) {
     const sess = JSON.parse(JSON.stringify(session));
     supabase.from(this.table).update({ expire: new Date(sess.cookie.expires) }).eq('sid', sid)
