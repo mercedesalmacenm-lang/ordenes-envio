@@ -34,7 +34,8 @@ class SupabaseSessionStore extends EventEmitter {
   }
 
   createSession(sid, sess) {
-    return { sid, sess };
+    sess.id = sid;
+    return sess;
   }
 
   touch(sid, session, callback) {
