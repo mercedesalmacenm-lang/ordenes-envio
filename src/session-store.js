@@ -3,6 +3,7 @@ const supabase = require('./supabase');
 
 class SupabaseSessionStore extends EventEmitter {
   constructor() {
+    super();
     this.table = 'sessions';
   }
 
