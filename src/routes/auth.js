@@ -35,7 +35,11 @@ router.post('/registro', registerLimiter, async (req, res) => {
     if (isFirst) {
       const { password: _, ...safeUser } = newUser;
       req.session.user = safeUser;
-      return res.json({ user: safeUser, message: 'Cuenta creada. Eres el administrador.' });
+      req.session.save((err) => {
+        if (err) return res.status(500).json({ error: 'Error al guardar sesión' });
+        return res.json({ user: safeUser, message: 'Cuenta creada. Eres el administrador.' });
+      });
+      return;
     }
     res.json({ message: 'Registro exitoso. Tu cuenta está pendiente de aprobación.' });
   } catch (err) {
@@ -56,7 +60,13 @@ router.post('/login', loginLimiter, async (req, res) => {
 
     const { password: _, ...safeUser } = user;
     req.session.user = safeUser;
-    res.json({ user: safeUser });
+    req.session.save((err) => {
+      if (err) {
+        console.error('[Login] Session save error:', err.message);
+        return res.status(500).json({ error: 'Error al guardar sesión' });
+      }
+      res.json({ user: safeUser });
+    });
   } catch (err) {
     res.status(500).json({ error: 'Error del servidor' });
   }
