@@ -392,7 +392,8 @@
         async function doLogin(e) {
             e.preventDefault();
             try {
-                const data = await api('POST','/api/auth/login',{username:document.getElementById('loginEmail').value,password:document.getElementById('loginPass').value});
+                await api('POST','/api/auth/login',{username:document.getElementById('loginEmail').value,password:document.getElementById('loginPass').value});
+                const data = await api('GET','/api/auth/me');
                 currentUser = data.user;
                 showApp();
             } catch(err) { showToast(err.message,'error'); }
@@ -402,7 +403,11 @@
             e.preventDefault();
             try {
                 const data = await api('POST','/api/auth/registro',{nombre:document.getElementById('regNombre').value,username:document.getElementById('regEmail').value,password:document.getElementById('regPass').value});
-                if (data.user) { currentUser = data.user; showApp(); }
+                if (data.user) {
+                    const me = await api('GET','/api/auth/me');
+                    currentUser = me.user;
+                    showApp();
+                }
                 else { showToast(data.message,'success'); showAuthTab('login'); }
             } catch(err) { showToast(err.message,'error'); }
         }
