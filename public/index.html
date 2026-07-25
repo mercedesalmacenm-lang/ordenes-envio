@@ -127,6 +127,11 @@
         .auth-form .btn-submit{width:100%;justify-content:center;margin-top:.5rem}
         .link-btn{background:none;border:none;color:var(--pico-primary);cursor:pointer;font-size:.85rem;padding:0;margin-top:.5rem}
         .link-btn:hover{text-decoration:underline}
+        .pw-rules{margin-top:.4rem;display:flex;flex-direction:column;gap:.2rem}
+        .pw-rule{font-size:.75rem;color:rgba(255,255,255,.35);display:flex;align-items:center;gap:.4rem;transition:color .2s}
+        .pw-rule::before{content:'';width:6px;height:6px;border-radius:50%;background:rgba(255,255,255,.2);transition:background .2s;flex-shrink:0}
+        .pw-rule.ok{color:#10b981}.pw-rule.ok::before{background:#10b981}
+        .pw-rule.fail{color:#ef4444}.pw-rule.fail::before{background:#ef4444}
         .pending-msg{text-align:center;padding:2rem;color:rgba(255,255,255,.6)}
         .pending-msg svg{width:48px;height:48px;color:#f59e0b;margin-bottom:1rem}
         .pagination{display:flex;justify-content:center;align-items:center;gap:.5rem;margin-top:1.5rem;flex-wrap:wrap}
@@ -173,8 +178,9 @@
                 <form onsubmit="doRegister(event)">
                     <div class="form-group"><label>Nombre completo</label><input type="text" id="regNombre" required placeholder="Juan Pérez" maxlength="100"></div>
                     <div class="form-group"><label>Nombre de usuario</label><input type="text" id="regEmail" required placeholder="Tu usuario" minlength="3"></div>
-                    <div class="form-group"><label>Contraseña</label><input type="password" id="regPass" required minlength="6" placeholder="Tu contraseña"><small style="color:rgba(255,255,255,.4);font-size:.75rem;display:block;margin-top:.25rem">Mín. 6 caracteres, 1 mayúscula, 1 número</small></div>
-                    <button type="submit" class="btn-submit" id="btnRegister"><i data-lucide="user-plus"></i> Crear Cuenta</button>
+                    <div class="form-group"><label>Contraseña</label><input type="password" id="regPass" required placeholder="Tu contraseña" oninput="checkRegPassword()"><div class="pw-rules" id="pwRules"><div id="pwLen" class="pw-rule">Mínimo 6 caracteres</div><div id="pwMay" class="pw-rule">Al menos 1 mayúscula</div><div id="pwNum" class="pw-rule">Al menos 1 número</div></div></div>
+                    <div class="form-group"><label>Confirmar contraseña</label><input type="password" id="regPassConfirm" required placeholder="Repite tu contraseña" oninput="checkRegPassword()"><div id="pwMatch" class="pw-rule" style="margin-top:.35rem"></div></div>
+                    <button type="submit" class="btn-submit" id="btnRegister" disabled><i data-lucide="user-plus"></i> Crear Cuenta</button>
                 </form>
             </div>
         </div>
@@ -1047,6 +1053,34 @@ ${o.imagen?`<div class="section"><div class="section-title">Imagen Adjunta</div>
                 document.getElementById('itemsList').innerHTML=''; itemCounter=0; addItem(); generateFolio(); loadAllOrders();
                 document.getElementById('fecha').value = new Date().toISOString().slice(0,10);
             } catch(err) { showToast(err.message,'error'); }
+        }
+
+        function checkRegPassword() {
+            const pass = document.getElementById('regPass').value;
+            const confirm = document.getElementById('regPassConfirm').value;
+            const lenOk = pass.length >= 6;
+            const mayOk = /[A-Z]/.test(pass);
+            const numOk = /[0-9]/.test(pass);
+            const allOk = lenOk && mayOk && numOk;
+
+            setRuleState('pwLen', pass.length === 0 ? '' : (lenOk ? 'ok' : 'fail'));
+            setRuleState('pwMay', pass.length === 0 ? '' : (mayOk ? 'ok' : 'fail'));
+            setRuleState('pwNum', pass.length === 0 ? '' : (numOk ? 'ok' : 'fail'));
+
+            const matchEl = document.getElementById('pwMatch');
+            if (confirm.length === 0) {
+                matchEl.className = 'pw-rule'; matchEl.textContent = '';
+            } else if (pass === confirm) {
+                matchEl.className = 'pw-rule ok'; matchEl.textContent = 'Las contraseñas coinciden';
+            } else {
+                matchEl.className = 'pw-rule fail'; matchEl.textContent = 'Las contraseñas no coinciden';
+            }
+
+            document.getElementById('btnRegister').disabled = !(allOk && pass === confirm && confirm.length > 0);
+        }
+        function setRuleState(id, state) {
+            const el = document.getElementById(id);
+            el.className = 'pw-rule' + (state ? ' ' + state : '');
         }
 
         checkSession();
