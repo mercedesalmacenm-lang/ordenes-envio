@@ -26,6 +26,7 @@ router.post('/registro', registerLimiter, async (req, res) => {
     const newUser = await insert('usuarios', {
       nombre: nombre.trim(),
       username: username.trim().toLowerCase(),
+      email: username.trim().toLowerCase(),
       password: hash,
       rol: isFirst ? 'admin' : 'usuario',
       estado: isFirst ? 'aprobado' : 'pendiente'
