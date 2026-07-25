@@ -2,6 +2,7 @@ require('dotenv').config();
 const express = require('express');
 const session = require('express-session');
 const path = require('path');
+const SupabaseSessionStore = require('./src/session-store');
 const authRoutes = require('./src/routes/auth');
 const ordenesRoutes = require('./src/routes/ordenes');
 const usuariosRoutes = require('./src/routes/usuarios');
@@ -14,6 +15,7 @@ app.use(express.json({ limit: '10mb' }));
 app.use(express.static(path.join(__dirname, 'public')));
 
 app.use(session({
+  store: new SupabaseSessionStore(),
   secret: process.env.SESSION_SECRET || 'fallback-secret-change-me',
   resave: false,
   saveUninitialized: false,
