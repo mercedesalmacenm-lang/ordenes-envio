@@ -685,16 +685,18 @@
 
         function descargarCSV() {
             if (orders.length === 0) { showToast('No hay órdenes para descargar','error'); return; }
-            const rows = [['Folio','Solicitante','Núm. Económico','Destino','Fecha','Estado','Artículos']];
+            let html = '<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40"><head><meta charset="UTF-8"><!--[if gte mso 9]><xml><x:ExcelWorkbook><x:ExcelWorksheets><x:ExcelWorksheet><x:Name>Ordenes</x:Name><x:WorksheetOptions><x:DisplayGridlines/></x:WorksheetOptions></x:ExcelWorksheet></x:ExcelWorksheets></x:ExcelWorkbook></xml><![endif]--><style>td{border:1px solid #ccc;padding:6px 10px;font-size:12px;font-family:Calibri,sans-serif}th{background:#1a56db;color:#fff;padding:8px 10px;font-size:12px;font-family:Calibri,sans-serif;font-weight:700;text-align:left;border:1px solid #1a56db}.h{background:#e8f0fe;font-weight:700}.s-Pendiente{color:#b45309}.s-Enviada{color:#1e40af}.s-Cancelada{color:#991b1b}</style></head><body><table>';
+            html += '<tr><th>Folio</th><th>Solicitante</th><th>Núm. Económico</th><th>Destino</th><th>Fecha</th><th>Estado</th><th>Artículos</th><th>Notas</th></tr>';
             orders.forEach(o => {
                 let items = []; try { items = JSON.parse(o.articulos||'[]'); } catch(e) {}
                 const total = items.reduce((s,i)=>s+(i.cantidad||0),0);
-                rows.push([o.folio,o.nombre,o.equipo,o.destino||'',formatDateCSV(o.fecha),o.estado,total]);
+                const sc = 's-' + o.estado;
+                html += `<tr><td style="font-family:monospace;font-weight:600">${esc(o.folio)}</td><td>${esc(o.nombre)}</td><td>${esc(o.equipo)}</td><td>${esc(o.destino||'')}</td><td style="text-align:center">${formatDateCSV(o.fecha)}</td><td class="${sc}">${esc(o.estado)}</td><td style="text-align:center">${total}</td><td>${esc(o.notas||'')}</td></tr>`;
             });
-            const csv = rows.map(r => r.map(c => `"${String(c).replace(/"/g,'""')}"`).join(',')).join('\r\n');
-            const blob = new Blob([`\ufeff${csv}`], { type: 'text/csv;charset=utf-8;' });
+            html += '</table></body></html>';
+            const blob = new Blob([`\ufeff${html}`], { type: 'application/vnd.ms-excel;charset=utf-8' });
             const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
-            a.download = `ordenes_${new Date().toISOString().slice(0,10)}.csv`;
+            a.download = `ordenes_${new Date().toISOString().slice(0,10)}.xls`;
             a.click(); URL.revokeObjectURL(a.href);
             showToast('Descarga iniciada','success');
         }
