@@ -686,20 +686,46 @@
         function descargarCSV() {
             try {
                 if (orders.length === 0) { showToast('No hay órdenes','error'); return; }
-                const fecha = new Date().toISOString().slice(0,10);
-                let csv = '\ufeff';
-                csv += 'Folio,Solicitante,Núm. Económico,Destino,Fecha,Estado,Artículos,Notas\r\n';
+                const fecha = new Date().toLocaleDateString('es-MX',{day:'2-digit',month:'long',year:'numeric'});
+                const fName = new Date().toISOString().slice(0,10);
+                let html = '<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40"><head><meta charset="UTF-8"><!--[if gte mso 9]><xml><x:ExcelWorkbook><x:ExcelWorksheets><x:ExcelWorksheet><x:Name>Ordenes</x:Name><x:WorksheetOptions><x:DisplayGridlines/></x:WorksheetOptions></x:ExcelWorksheet></x:ExcelWorksheets></x:ExcelWorkbook></xml><![endif]--><style>body{font-family:Calibri,sans-serif;padding:20px}.header{text-align:center;margin-bottom:20px;padding-bottom:15px;border-bottom:3px solid #1a56db}.header h1{color:#1a56db;font-size:22px;margin:5px 0 2px}.header p{color:#666;font-size:12px;margin:0}.header .sub{color:#999;font-size:11px;font-style:italic}table{width:100%;border-collapse:collapse;margin-top:10px}th{background:#1a56db;color:#fff;padding:8px 10px;font-size:11px;font-family:Calibri,sans-serif;font-weight:700;text-align:left;border:1px solid #1a56db}td{border:1px solid #ccc;padding:5px 8px;font-size:11px;font-family:Calibri,sans-serif;vertical-align:top}.folio{font-family:Consolas,monospace;font-weight:600;color:#1a56db;font-size:11px}.s-Pendiente{color:#b45309;font-weight:600}.s-Enviada{color:#1e40af;font-weight:600;text-transform:uppercase}.s-Cancelada{color:#991b1b;font-weight:600;text-transform:uppercase}.fila-par{background:#f5f7fa}.footer{text-align:center;margin-top:15px;padding-top:10px;border-top:1px solid #ddd;font-size:10px;color:#999}</style></head><body>';
+                html += `<div class="header"><h1>MAFER - Órdenes de Envío</h1><p class="sub">De refacciones, artículos usados</p><p>Reporte generado: ${fecha}</p></div>`;
+                html += '<table><tr><th>Folio</th><th>Solicitante</th><th>Núm. Econ.</th><th>Destino</th><th>Fecha</th><th>Estado</th><th>Artículo</th><th>Cant.</th><th>Unidad</th><th>Descripción</th><th>Notas</th></tr>';
+                let fila = 0;
                 orders.forEach(o => {
                     let items = []; try { items = JSON.parse(o.articulos||'[]'); } catch(e) {}
-                    const total = items.reduce((s,i)=>s+(i.cantidad||0),0);
-                    const f = o.fecha ? o.fecha.split('-').reverse().join('/') : '';
-                    const row = [o.folio,o.nombre,o.equipo,o.destino||'',f,o.estado,total,o.notas||''];
-                    csv += row.map(c => `"${String(c).replace(/"/g,'""')}"`).join(',') + '\r\n';
+                    const totalArt = items.reduce((s,i)=>s+(i.cantidad||0),0);
+                    items.forEach((it, idx) => {
+                        const isOtro = it.mfu_id==='MFUOTRO' && it.descripcion;
+                        const nombre = isOtro ? it.descripcion : (it.nombre||'');
+                        const desc = isOtro ? '-' : (it.descripcion||'-');
+                        const clase = fila % 2 === 0 ? '' : 'fila-par';
+                        html += `<tr class="${clase}">`;
+                        if (idx === 0) {
+                            const rs = items.length;
+                            const fd = o.fecha ? o.fecha.split('-').reverse().join('/') : '';
+                            html += `<td class="folio" rowspan="${rs}">${esc(o.folio)}</td>`;
+                            html += `<td rowspan="${rs}">${esc(o.nombre)}</td>`;
+                            html += `<td rowspan="${rs}">${esc(o.equipo)}</td>`;
+                            html += `<td rowspan="${rs}">${esc(o.destino||'')}</td>`;
+                            html += `<td rowspan="${rs}" style="text-align:center;white-space:nowrap">${fd}</td>`;
+                            html += `<td rowspan="${rs}" class="s-${esc(o.estado)}">${esc(o.estado)}</td>`;
+                        }
+                        html += `<td>${esc(nombre)}</td><td style="text-align:center">${it.cantidad||0}</td><td>${esc(it.unidad||'pza')}</td><td>${esc(desc)}</td>`;
+                        if (idx === 0) {
+                            html += `<td rowspan="${items.length}">${esc(o.notas||'')}</td>`;
+                        }
+                        html += '</tr>';
+                        fila++;
+                    });
                 });
-                const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+                html += `<tr><td colspan="11" style="text-align:right;padding:8px;font-weight:600">Total artículos: ${orders.reduce((s,o)=>{let it=[];try{it=JSON.parse(o.articulos||'[]')}catch(e){}return s+it.reduce((a,i)=>a+(i.cantidad||0),0)},0)}</td></tr>`;
+                html += '</table>';
+                html += `<div class="footer">MAFER - De refacciones, artículos usados | ${fecha}</div></body></html>`;
+                const blob = new Blob([`\ufeff${html}`], { type: 'application/vnd.ms-excel;charset=utf-8' });
                 const a = document.createElement('a');
                 a.href = URL.createObjectURL(blob);
-                a.download = `ordenes_${fecha}.csv`;
+                a.download = `ordenes_${fName}.xls`;
                 document.body.appendChild(a);
                 a.click();
                 document.body.removeChild(a);
